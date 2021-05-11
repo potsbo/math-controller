@@ -28,8 +28,8 @@ type NumberSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Number. Edit number_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	// Value is an example field of Number. Edit number_types.go to remove/update
+	Value int64 `json:"value,omitempty"`
 }
 
 // NumberStatus defines the observed state of Number

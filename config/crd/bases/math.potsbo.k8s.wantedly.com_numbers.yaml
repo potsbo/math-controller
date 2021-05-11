@@ -36,10 +36,11 @@ spec:
           spec:
             description: NumberSpec defines the desired state of Number
             properties:
-              foo:
-                description: Foo is an example field of Number. Edit number_types.go
+              value:
+                description: Value is an example field of Number. Edit number_types.go
                   to remove/update
-                type: string
+                format: int64
+                type: integer
             type: object
           status:
             description: NumberStatus defines the observed state of Number
