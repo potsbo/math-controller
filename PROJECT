@@ -1,0 +1,6 @@
+domain: potsbo.k8s.wantedly.com
+layout:
+- go.kubebuilder.io/v3
+projectName: math-controller
+repo: github.com/potsbo/math-controller
+version: "3"
