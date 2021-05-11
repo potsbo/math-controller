@@ -1,0 +1,24 @@
+# permissions for end users to edit numbers.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: number-editor-role
+rules:
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - numbers
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - numbers/status
+  verbs:
+  - get

@@ -1,0 +1,7 @@
+apiVersion: math.potsbo.k8s.wantedly.com/v1beta1
+kind: Number
+metadata:
+  name: number-sample
+spec:
+  # Add fields here
+  foo: bar

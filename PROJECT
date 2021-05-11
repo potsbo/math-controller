@@ -3,4 +3,14 @@ layout:
 - go.kubebuilder.io/v3
 projectName: math-controller
 repo: github.com/potsbo/math-controller
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: potsbo.k8s.wantedly.com
+  group: math
+  kind: Number
+  path: github.com/potsbo/math-controller/api/v1beta1
+  version: v1beta1
 version: "3"
