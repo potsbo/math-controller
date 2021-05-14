@@ -179,6 +179,17 @@ func (r *TupleUpdater) UpdateStatus(ctx context.Context, req types.NamespacedNam
 		}
 	}
 
+	{
+		up := FermatUpdater{r.Client, r.Log, r.Scheme}
+		for _, ref := range parent.ObjectMeta.OwnerReferences {
+			if ref.APIVersion == "math.potsbo.k8s.wantedly.com/v1beta1" && ref.Kind == "Fermat" {
+				if err := up.UpdateStatus(ctx, types.NamespacedName{Namespace: req.Namespace, Name: ref.Name}); err != nil {
+					return errors.WithStack(err)
+				}
+			}
+		}
+	}
+
 	return nil
 }
 
