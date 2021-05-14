@@ -16,7 +16,11 @@ spec:
     singular: tuple
   scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - jsonPath: .status.all_squares
+      name: All Square
+      type: boolean
+    name: v1beta1
     schema:
       openAPIV3Schema:
         description: Tuple is the Schema for the tuples API
@@ -36,13 +40,21 @@ spec:
           spec:
             description: TupleSpec defines the desired state of Tuple
             properties:
-              foo:
-                description: Foo is an example field of Tuple. Edit tuple_types.go
-                  to remove/update
-                type: string
+              numbers:
+                items:
+                  format: int64
+                  type: integer
+                type: array
+            required:
+            - numbers
             type: object
           status:
             description: TupleStatus defines the observed state of Tuple
+            properties:
+              all_squares:
+                type: boolean
+            required:
+            - all_squares
             type: object
         type: object
     served: true
