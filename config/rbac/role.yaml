@@ -9,6 +9,32 @@ rules:
 - apiGroups:
   - math.potsbo.k8s.wantedly.com
   resources:
+  - fermats
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - fermats/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - fermats/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
   - numbers
   verbs:
   - create
