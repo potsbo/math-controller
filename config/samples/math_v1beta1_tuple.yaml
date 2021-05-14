@@ -1,0 +1,7 @@
+apiVersion: math.potsbo.k8s.wantedly.com/v1beta1
+kind: Tuple
+metadata:
+  name: tuple-sample
+spec:
+  # Add fields here
+  foo: bar
