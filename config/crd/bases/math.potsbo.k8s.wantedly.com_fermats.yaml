@@ -16,7 +16,11 @@ spec:
     singular: fermat
   scope: Namespaced
   versions:
-  - name: v1beta1
+  - additionalPrinterColumns:
+    - jsonPath: .status.two_squares_found
+      name: Two Squares Found
+      type: boolean
+    name: v1beta1
     schema:
       openAPIV3Schema:
         description: Fermat is the Schema for the fermats API
@@ -36,13 +40,17 @@ spec:
           spec:
             description: FermatSpec defines the desired state of Fermat
             properties:
-              foo:
-                description: Foo is an example field of Fermat. Edit fermat_types.go
-                  to remove/update
-                type: string
+              number:
+                format: int64
+                type: integer
             type: object
           status:
             description: FermatStatus defines the observed state of Fermat
+            properties:
+              two_squares_found:
+                type: boolean
+            required:
+            - two_squares_found
             type: object
         type: object
     served: true
