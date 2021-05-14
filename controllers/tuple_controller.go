@@ -18,13 +18,18 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	"github.com/potsbo/math-controller/api/v1beta1"
+	mathv1beta1 "github.com/potsbo/math-controller/api/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	mathv1beta1 "github.com/potsbo/math-controller/api/v1beta1"
+	util "sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 // TupleReconciler reconciles a Tuple object
@@ -51,8 +56,8 @@ func (r *TupleReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 	_ = r.Log.WithValues("tuple", req.NamespacedName)
 
 	// your logic here
-
-	return ctrl.Result{}, nil
+	up := TupleUpdater{r.Client, r.Log, r.Scheme}
+	return ctrl.Result{}, up.Update(ctx, req.NamespacedName)
 }
 
 // SetupWithManager sets up the controller with the Manager.
@@ -60,4 +65,156 @@ func (r *TupleReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&mathv1beta1.Tuple{}).
 		Complete(r)
+}
+
+type TupleUpdater struct {
+	Client client.Client
+	Log    logr.Logger
+	Scheme *runtime.Scheme
+}
+
+func (r *TupleUpdater) Update(ctx context.Context, req types.NamespacedName) error {
+	_ = r.Log.WithValues("tuple", req)
+
+	// your logic here
+	parent := v1beta1.Tuple{}
+	if err := r.Client.Get(ctx, req, &parent); err != nil {
+		return client.IgnoreNotFound(err)
+	}
+
+	desireds := []v1beta1.Number{}
+	for i, v := range parent.Spec.Numbers {
+		desired := v1beta1.Number{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("%s-%d", req.Name, i),
+				Namespace: req.Namespace,
+			},
+			Spec: v1beta1.NumberSpec{
+				Value: v,
+			},
+		}
+		desireds = append(desireds, desired)
+	}
+
+	children, err := r.getChildren(ctx, parent)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	deleteTargets := []v1beta1.Number{}
+	{
+		desiredNames := map[string]bool{}
+		for _, desired := range desireds {
+			desiredNames[desired.Name] = true
+		}
+
+		for _, existing := range children {
+			if _, ok := desiredNames[existing.Name]; !ok {
+				deleteTargets = append(deleteTargets, existing)
+			}
+		}
+	}
+
+	for _, desired := range desireds {
+		obj := v1beta1.Number{
+			ObjectMeta: desired.ObjectMeta,
+		}
+		if _, err := util.CreateOrUpdate(ctx, r.Client, &obj, func() error {
+			obj.Spec = desired.Spec
+			return errors.WithStack(util.SetControllerReference(&parent, &obj, r.Scheme))
+		}); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	for _, item := range deleteTargets {
+		del := item
+		if err := r.Client.Delete(ctx, &del); err != nil {
+			return errors.WithStack(client.IgnoreNotFound(err))
+		}
+	}
+
+	return errors.WithStack(r.UpdateStatus(ctx, req))
+}
+
+func (r *TupleUpdater) getChildren(ctx context.Context, parent v1beta1.Tuple) ([]v1beta1.Number, error) {
+	children := []v1beta1.Number{}
+	existings := v1beta1.NumberList{}
+	if err := r.Client.List(ctx, &existings); err != nil {
+		return nil, errors.WithStack(err)
+	}
+	for _, item := range existings.Items {
+		i := item
+		if ownedByParent(&i, &parent) {
+			children = append(children, i)
+		}
+	}
+
+	return children, nil
+}
+
+func (r *TupleUpdater) UpdateStatus(ctx context.Context, req types.NamespacedName) error {
+	parent := v1beta1.Tuple{}
+	if err := r.Client.Get(ctx, req, &parent); err != nil {
+		return client.IgnoreNotFound(err)
+	}
+
+	children, err := r.getChildren(ctx, parent)
+	if err != nil {
+		return errors.WithStack(err)
+	}
+
+	{
+		allSquare := true
+		for _, existing := range children {
+			if !existing.Status.IsSquare {
+				allSquare = false
+			}
+		}
+		if parent.Status.AllSquares != allSquare {
+			parent.Status.AllSquares = allSquare
+			if err := r.Client.Status().Update(ctx, &parent); err != nil {
+				return errors.WithStack(err)
+			}
+		}
+	}
+
+	return nil
+}
+
+func (r *TupleUpdater) UpdateAll(ctx context.Context) error {
+	existings := v1beta1.TupleList{}
+	if err := r.Client.List(ctx, &existings); err != nil {
+		return errors.WithStack(err)
+	}
+
+	for _, existing := range existings.Items {
+		if err := r.Update(ctx, types.NamespacedName{Namespace: existing.Namespace, Name: existing.Name}); err != nil {
+			return errors.WithStack(err)
+		}
+	}
+
+	return nil
+}
+
+func ownedByParent(child util.Object, parent util.Object) bool {
+	parentGVK := parent.GetObjectKind().GroupVersionKind()
+
+	for _, ref := range child.GetOwnerReferences() {
+		if ref.Name != parent.GetName() {
+			continue
+		}
+
+		if ref.APIVersion != parentGVK.GroupVersion().String() {
+			continue
+		}
+
+		if ref.Kind != parentGVK.Kind {
+			continue
+		}
+
+		return true
+	}
+
+	return false
 }

@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -60,7 +61,8 @@ func (r *NumberReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 
 	if err := r.Client.Get(ctx, req.NamespacedName, &obj); err != nil {
 		if apierrors.IsNotFound(err) {
-			return ctrl.Result{}, nil
+			up := TupleUpdater{r.Client, r.Log, r.Scheme}
+			return ctrl.Result{}, errors.WithStack(up.UpdateAll(ctx))
 		}
 		return ctrl.Result{}, errors.WithStack(err)
 	}
@@ -71,6 +73,17 @@ func (r *NumberReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		logger.Info("New Status", "status", obj.Status)
 		if err := r.Status().Update(ctx, &obj); err != nil {
 			return ctrl.Result{}, errors.WithStack(err)
+		}
+	}
+
+	{
+		up := TupleUpdater{r.Client, r.Log, r.Scheme}
+		for _, ref := range obj.ObjectMeta.OwnerReferences {
+			if ref.APIVersion == "math.potsbo.k8s.wantedly.com/v1beta1" && ref.Kind == "Tuple" {
+				if err := up.UpdateStatus(ctx, types.NamespacedName{Namespace: req.Namespace, Name: ref.Name}); err != nil {
+					return ctrl.Result{}, errors.WithStack(err)
+				}
+			}
 		}
 	}
 

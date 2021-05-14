@@ -4,4 +4,7 @@ metadata:
   name: tuple-sample
 spec:
   # Add fields here
-  foo: bar
+  numbers:
+    - 0
+    - 1
+    - 1
