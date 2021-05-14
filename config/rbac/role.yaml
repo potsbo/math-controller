@@ -32,3 +32,29 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - tuples
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - tuples/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - tuples/status
+  verbs:
+  - get
+  - patch
+  - update
