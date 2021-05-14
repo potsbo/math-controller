@@ -28,18 +28,20 @@ type TupleSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Tuple. Edit tuple_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Numbers []int64 `json:"numbers"`
 }
 
 // TupleStatus defines the observed state of Tuple
 type TupleStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	AllSquares bool `json:"all_squares"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="All Square",type=boolean,JSONPath=`.status.all_squares`
 
 // Tuple is the Schema for the tuples API
 type Tuple struct {
