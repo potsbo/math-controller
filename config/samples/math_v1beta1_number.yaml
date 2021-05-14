@@ -4,4 +4,4 @@ metadata:
   name: number-sample
 spec:
   # Add fields here
-  foo: bar
+  value: 1

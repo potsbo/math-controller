@@ -18,12 +18,17 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"math"
 
 	"github.com/go-logr/logr"
+	"github.com/pkg/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
+	"github.com/potsbo/math-controller/api/v1beta1"
 	mathv1beta1 "github.com/potsbo/math-controller/api/v1beta1"
 )
 
@@ -48,11 +53,47 @@ type NumberReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.2/pkg/reconcile
 func (r *NumberReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = r.Log.WithValues("number", req.NamespacedName)
+	logger := r.Log.WithValues("number", req.NamespacedName)
 
 	// your logic here
+	obj := v1beta1.Number{}
+
+	if err := r.Client.Get(ctx, req.NamespacedName, &obj); err != nil {
+		if apierrors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		return ctrl.Result{}, errors.WithStack(err)
+	}
+
+	{
+		obj.Status.FizzBuzz = fizzbuzz(obj.Spec.Value)
+		obj.Status.IsSquare = isSquare(obj.Spec.Value)
+		logger.Info("New Status", "status", obj.Status)
+		if err := r.Status().Update(ctx, &obj); err != nil {
+			return ctrl.Result{}, errors.WithStack(err)
+		}
+	}
 
 	return ctrl.Result{}, nil
+}
+
+func fizzbuzz(n int64) string {
+	if n%15 == 0 {
+		return "FizzBuzz"
+	}
+	if n%3 == 0 {
+		return "Fizz"
+	}
+	if n%5 == 0 {
+		return "Buzz"
+	}
+
+	return fmt.Sprintf("%d", n)
+}
+
+func isSquare(num int64) bool {
+	sqrt := int64(math.Floor(math.Sqrt(float64(num))))
+	return sqrt*sqrt == num
 }
 
 // SetupWithManager sets up the controller with the Manager.

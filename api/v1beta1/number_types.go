@@ -36,10 +36,16 @@ type NumberSpec struct {
 type NumberStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	FizzBuzz string `json:"fizz_buzz,omitempty"`
+	IsSquare bool   `json:"is_square,omitempty"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Value",type=integer,JSONPath=`.spec.value`
+//+kubebuilder:printcolumn:name="FizzBuzz",type=string,JSONPath=`.status.fizz_buzz`
+//+kubebuilder:printcolumn:name="Square",type=boolean,JSONPath=`.status.is_square`
 
 // Number is the Schema for the numbers API
 type Number struct {
