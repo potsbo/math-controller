@@ -1,0 +1,24 @@
+# permissions for end users to edit fermats.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fermat-editor-role
+rules:
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - fermats
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - math.potsbo.k8s.wantedly.com
+  resources:
+  - fermats/status
+  verbs:
+  - get

@@ -1,0 +1,7 @@
+apiVersion: math.potsbo.k8s.wantedly.com/v1beta1
+kind: Fermat
+metadata:
+  name: fermat-sample
+spec:
+  # Add fields here
+  foo: bar

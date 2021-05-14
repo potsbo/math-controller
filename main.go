@@ -94,6 +94,14 @@ func main() {
 		setupLog.Error(err, "unable to create controller", "controller", "Tuple")
 		os.Exit(1)
 	}
+	if err = (&controllers.FermatReconciler{
+		Client: mgr.GetClient(),
+		Log:    ctrl.Log.WithName("controllers").WithName("Fermat"),
+		Scheme: mgr.GetScheme(),
+	}).SetupWithManager(mgr); err != nil {
+		setupLog.Error(err, "unable to create controller", "controller", "Fermat")
+		os.Exit(1)
+	}
 	//+kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
