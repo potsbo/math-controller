@@ -28,18 +28,20 @@ type FermatSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-	// Foo is an example field of Fermat. Edit fermat_types.go to remove/update
-	Foo string `json:"foo,omitempty"`
+	Number int64 `json:"number,omitempty"`
 }
 
 // FermatStatus defines the observed state of Fermat
 type FermatStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	TwoSquaresFound bool `json:"two_squares_found"`
 }
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
+//+kubebuilder:printcolumn:name="Two Squares Found",type=boolean,JSONPath=`.status.two_squares_found`
 
 // Fermat is the Schema for the fermats API
 type Fermat struct {
